@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PhoneNumberChecker": {
+      "commandName": "Project",
+      "commandLineArgs": "PHE_SMS phoneIndex=15 countryCode=44 file=\"C:\\Users\\maine\\Desktop\\temp\\sitel_test_mov_web_daily.csv\" -national -h delimiter=, exportDirectory=\"C:\\Users\\maine\\Desktop\\temp\""
+    }
+  }
+}
