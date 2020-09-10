@@ -49,7 +49,6 @@ namespace Sitel.Applications.PhoneNumberChecker.Models
             }
         }
 
-       // public bool IsValid { get; set; }
 
         public  string OriginalPhone { get; set; }
         private readonly int CountryCode;
