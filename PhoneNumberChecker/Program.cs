@@ -1,9 +1,7 @@
 ﻿using PhoneNumbers;
 using Serilog;
 using Serilog.Events;
-using Sitel.Applications.PhoneNumberChecker.Exceptions;
 using System;
-using System.Globalization;
 using System.Linq;
 
 namespace Sitel.Applications.PhoneNumberChecker
@@ -12,9 +10,9 @@ namespace Sitel.Applications.PhoneNumberChecker
     {
         static void Main(string[] args)
         {
-            var phoneNumberUtil = PhoneNumbers.PhoneNumberUtil.GetInstance();
-          
-         
+            //var phoneNumberUtil = PhoneNumbers.PhoneNumberUtil.GetInstance();
+
+
             //Usage:
             //Console.WriteLine(phoneNumberUtil.IsValidNumberForRegion(phoneNumberUtil.Parse("+44123456789", "GB"), "GB"));
             //Console.WriteLine(phoneNumberUtil.IsValidNumberForRegion(phoneNumberUtil.Parse("0756325489", "GB"), "GB"));
@@ -36,35 +34,87 @@ namespace Sitel.Applications.PhoneNumberChecker
             //algorithm
             //read file, analyze phone numbers, create output file with numberType, phone is valid, filename, 
             //options: countryCode=44 file="FILE.csv" phoneIndex=1|2|3 -n (option to output national number output)
-            string name = args[0];
-            string TASK_ID = $"{DateTime.Now:yyyyMMddHHmmss}";
-            Log.Logger = new LoggerConfiguration()
-                     .MinimumLevel.Debug()
-                     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                     .Enrich.FromLogContext()
-                     .WriteTo.File($"./Logs/{name}_{TASK_ID}.log")
-                     .CreateLogger();
 
-            Log.Information("Process STARTED");
-            Log.Information($"ID: {TASK_ID}");
             
 
-            AnalyzeCommandLineArgs(args, out PhoneAnalyzer phoneAnalyzer);
+            bool isValid = AnalyzeCommandLineArgs(args, out PhoneAnalyzer phoneAnalyzer);
+            if (isValid)
+            {
+                string name = args[0];
+                string TASK_ID = $"{DateTime.Now:yyyyMMddHHmmss}";
+                Log.Logger = new LoggerConfiguration()
+                         .MinimumLevel.Debug()
+                         .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                         .Enrich.FromLogContext()
+                         .WriteTo.File($"./Logs/{name}_{TASK_ID}.log")
+                         .CreateLogger();
 
-            phoneAnalyzer.RunAnalyzer();
-            phoneAnalyzer.GenerateFile($"PhoneNumberChecker_{TASK_ID}.csv");
+                Log.Information("Process STARTED");
+                Log.Information($"ID: {TASK_ID}");
 
-            Log.Information("Process ENDED.");
+                phoneAnalyzer.RunAnalyzer();
+                phoneAnalyzer.GenerateFile($"PhoneNumberChecker_{TASK_ID}.csv");
+
+                Log.Information("Process ENDED.");
+            }
+            else {
+               
+                return;
+            }
+
+           
 
         }
 
+        private static void DisplayHelp() {
+            Console.WriteLine("PhoneNumberChecker version 1.0.0");
+            Console.WriteLine("Sitel - EMEA Applications Development 2020");
+            Console.WriteLine("");
+            Console.WriteLine("@usage: PhoneNumberChecker <ProjectName> phoneIndex=<indexes> " +
+                "countryCode=<countryCode> file=<inputFileLocation> delimiter=<inputDelimiter> " +
+                "exportDirectory=<exportDirectory> [options]");
+            Console.WriteLine("");
+            Console.WriteLine("Command descriptions:");
+            Console.WriteLine("<indexes>                   Index in the file where its considered as a phone number, comma separated");
+            Console.WriteLine("<countryCode>               Supported country codes");
+            Console.WriteLine("<inputFileLocation>         File to scan and generate phone number details");
+            Console.WriteLine("<inputDelimiter>            Delimiter of the input file");
+            Console.WriteLine("<exportDirectory>           Directory to generate the new file");
+            Console.WriteLine("");
+            Console.WriteLine("Available options:");
+            Console.WriteLine("-national                   Get phone number in national format");
+            Console.WriteLine("-e164                       Get phone number in E164 format");
+            Console.WriteLine("-rfc3966                    Get phone number in RFC3966 format");
+            Console.WriteLine("-h                          File has a header");
+            Console.WriteLine("");
+            Console.WriteLine("Try:");
+            Console.WriteLine("     \"PhoneNumberChecker -r\"      to display supported regions");
+            
+        }
 
-        public static void AnalyzeCommandLineArgs(string[] args, out PhoneAnalyzer phoneAnalyzer) 
+        private static void DisplaySupportedRegions() {
+            var phoneNumberUtil = PhoneNumberUtil.GetInstance();
+
+            Console.WriteLine("PhoneNumberChecker version 1.0.0");
+            Console.WriteLine("Sitel - EMEA Applications Development 2020");
+            Console.WriteLine("");
+            Console.WriteLine("Supported Regions:");
+            foreach (var rg in phoneNumberUtil.GetSupportedRegions()) {
+                var countryCode = phoneNumberUtil.GetCountryCodeForRegion(rg);
+
+                //Locale locale = new Locale("", Convert.ToString(countryCode));
+               // String countryName = locale.Country("en");
+                Console.WriteLine($"{rg}      {countryCode}");
+            }
+
+        }
+
+        public static bool AnalyzeCommandLineArgs(string[] args, out PhoneAnalyzer phoneAnalyzer) 
         {
             phoneAnalyzer = new PhoneAnalyzer();
             for (int i = 0; i < args.Count(); i++)
             {
-                if (i > 0)
+                if (i > 0 || (args.Count()==1))
                 {
                     var arg = args[i];
 
@@ -83,13 +133,15 @@ namespace Sitel.Applications.PhoneNumberChecker
                     }
                     else
                     {
-                        throw new InvalidCommandLineArgumentsException(arg);
+                        DisplayHelp();
+                        //return;
+                        return false;
                     }
 
                     switch (optionKey)
                     {
                         case "phoneIndex":
-                            phoneAnalyzer.PhoneIndex.AddRange(optionValue.Split("|").Select(o => Convert.ToInt32(o)));
+                            phoneAnalyzer.PhoneIndex.AddRange(optionValue.Split(",").Select(o => Convert.ToInt32(o)));
                             break;
                         case "countryCode":
                             phoneAnalyzer.CountryCode = Convert.ToInt32(optionValue);
@@ -115,13 +167,19 @@ namespace Sitel.Applications.PhoneNumberChecker
                         case "-h":
                             phoneAnalyzer.ExcludeFirstRow = true;
                             break;
+                        case "-r":
+                            DisplaySupportedRegions();
+                            return false;
                         default:
-                            throw new InvalidCommandLineArgumentsException(optionKey);
+                            DisplayHelp();
+                            return false;
+                           // break;
 
                     }
                 }
-
             }
+
+            return true;
         }
     }
 }

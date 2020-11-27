@@ -21,7 +21,7 @@ namespace Sitel.Applications.PhoneNumberChecker
         public bool ExcludeFirstRow { get; set; }
         public string Delimiter { get; set; }
 
-        public List<PhoneAnalyzerData> PhoneAnalyzerDatas { get; set; }
+        public List<PhoneDetailsExporter> PhoneAnalyzerDatas { get; set; }
 
         private string[] RawHeaders { get; set; }
         public int CountryCode { get; set; }
@@ -30,7 +30,7 @@ namespace Sitel.Applications.PhoneNumberChecker
         public PhoneAnalyzer()
         {
             PhoneIndex = new List<int>();
-            PhoneAnalyzerDatas = new List<PhoneAnalyzerData>();
+            PhoneAnalyzerDatas = new List<PhoneDetailsExporter>();
         }
 
         public void RunAnalyzer()
@@ -42,7 +42,7 @@ namespace Sitel.Applications.PhoneNumberChecker
             while (!reader.EndOfStream)
             {
 
-                var phoneAnalyzerData = new PhoneAnalyzerData();
+                var phoneAnalyzerData = new PhoneDetailsExporter();
 
                 string rawLine = reader.ReadLine();
 
@@ -100,6 +100,13 @@ namespace Sitel.Applications.PhoneNumberChecker
 
         public void GenerateFile(string filename)
         {
+            Log.Information($"Export directory: {ExportDirectory}");
+
+            if (!Directory.Exists(ExportDirectory))
+            {
+                Directory.CreateDirectory(ExportDirectory);
+            }
+
             filename = Path.Combine(ExportDirectory, filename);
 
             try
@@ -111,7 +118,7 @@ namespace Sitel.Applications.PhoneNumberChecker
                 foreach (var pData in PhoneAnalyzerDatas)
                 {
                     var phonesStat = pData.PhoneDatas.Select(p => ConvertPhoneDataToString(p)).ToList();
-                    var phoneCheckerRow = $"{String.Join(',', pData.RowArray)},{String.Join(',', phonesStat)},{rawFile}";
+                    var phoneCheckerRow = $"{String.Join(',', pData.EncloseRowArray)},{String.Join(',', phonesStat)},{rawFile}";
                     outputFile.WriteLine(phoneCheckerRow);
                 }
 

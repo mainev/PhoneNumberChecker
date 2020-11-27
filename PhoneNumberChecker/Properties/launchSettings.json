@@ -2,7 +2,7 @@
   "profiles": {
     "PhoneNumberChecker": {
       "commandName": "Project",
-      "commandLineArgs": "PHE_SMS phoneIndex=15 countryCode=44 file=\"C:\\Users\\maine\\Desktop\\temp\\sitel_test_mov_web_daily.csv\" -national -h delimiter=, exportDirectory=\"C:\\Users\\maine\\Desktop\\temp\""
+      "commandLineArgs": "PHE_SMS phoneIndex=1,2,3 countryCode=44 file=\"C:\\Users\\maine\\Desktop\\temp\\phe_sms_test.csv\" -national -h delimiter=, exportDirectory=\"C:\\Users\\maine\\Desktop\\temp\""
     }
   }
 }
