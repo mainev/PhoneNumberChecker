@@ -1,9 +1,6 @@
 ﻿using PhoneNumbers;
-using Serilog;
-using Sitel.Applications.PhoneNumberChecker.Exceptions;
+using Sitel.Taskfinder.Shared.Exceptions.Input;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Sitel.Applications.PhoneNumberChecker.Models
 {
